@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đăng nhập - Tên đơn vị của bạn</title>
+<style>
+  :root { --bg:#eef3f8; --card:#fff; --ink:#12263f; --muted:#5b6b7f; --brand:#0b5cab; --err:#c0392b; --line:#d5dee8; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg:#0e1722; --card:#162231; --ink:#e6edf5; --muted:#9aabbd; --brand:#4f9be0; --err:#ff8a7a; --line:#2a3b4f; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; background:var(--bg); color:var(--ink);
+         font-family:"Be Vietnam Pro","Segoe UI",system-ui,sans-serif; }
+  .card { width:min(92vw,380px); background:var(--card); border:1px solid var(--line); border-radius:10px; padding:32px 28px; }
+  h1 { font-size:1.15rem; margin:0 0 4px; }
+  p { margin:0 0 20px; color:var(--muted); font-size:.92rem; }
+  input, button { width:100%; font:inherit; padding:12px 14px; border-radius:6px; }
+  input { border:1px solid var(--line); background:transparent; color:var(--ink); margin-bottom:12px; }
+  button { border:0; background:var(--brand); color:#fff; font-weight:600; cursor:pointer; }
+  :focus-visible { outline:3px solid var(--brand); outline-offset:2px; }
+  #err { color:var(--err); font-size:.88rem; min-height:1.2em; margin:0 0 8px; }
+  #content { display:none; width:min(92vw,720px); padding:24px 0; }
+  #content article { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:28px; }
+  #content h2 { margin-top:0; }
+</style>
+</head>
+<body>
+
+<!-- Màn hình đăng nhập -->
+<form class="card" id="login">
+  <h1>Tên công ty / đơn vị</h1>
+  <p>Vui lòng nhập mật khẩu để truy cập</p>
+  <input type="password" id="pw" placeholder="Mật khẩu" autocomplete="current-password" required>
+  <div id="err" role="alert"></div>
+  <button type="submit">Đăng nhập</button>
+</form>
+
+<!-- Nội dung sau khi đăng nhập: thay bằng nội dung của bạn -->
+<main id="content">
+  <article>
+    <h2>Nội dung họp</h2>
+    <p>Thay phần này bằng chương trình họp, tài liệu, liên kết... của bạn.</p>
+  </article>
+</main>
+
+<script>
+  // Mật khẩu mẫu: pvgas2026. Đổi bằng cách thay mã băm SHA-256 bên dưới
+  // (tạo mã băm: chạy  printf 'matkhaumoi' | sha256sum  hoặc dùng trang sha256 online).
+  const PASS_HASH = "c7b8729fc2d7612bfe770a6b01029973f4a073f09afb6ff2f8b07bc3b180d191";
+  const KEY = "auth_ok";
+
+  async function sha256(text) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+  function show() {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("content").style.display = "block";
+    document.body.style.placeItems = "start center";
+  }
+  try { if (sessionStorage.getItem(KEY) === PASS_HASH) show(); } catch (e) {}
+
+  document.getElementById("login").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const h = await sha256(document.getElementById("pw").value);
+    if (h === PASS_HASH) {
+      try { sessionStorage.setItem(KEY, h); } catch (e) {}
+      show();
+    } else {
+      document.getElementById("err").textContent = "Mật khẩu chưa đúng. Hãy thử lại.";
+    }
+  });
+</script>
+</body>
+</html>
